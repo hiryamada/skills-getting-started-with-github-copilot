@@ -10,26 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/activities");
       const activities = await response.json();
 
-      // Clear loading message
-      activitiesList.innerHTML = "";
+      // Render activities
+      renderActivities(activities);
 
-      // Populate activities list
-      Object.entries(activities).forEach(([name, details]) => {
-        const activityCard = document.createElement("div");
-        activityCard.className = "activity-card";
-
-        const spotsLeft = details.max_participants - details.participants.length;
-
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
-
-        activitiesList.appendChild(activityCard);
-
-        // Add option to select dropdown
+      // Populate select dropdown
+      activitySelect.innerHTML = "";
+      Object.keys(activities).forEach((name) => {
         const option = document.createElement("option");
         option.value = name;
         option.textContent = name;
@@ -39,6 +25,51 @@ document.addEventListener("DOMContentLoaded", () => {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
     }
+  }
+
+  // Function to render activities
+  function renderActivities(activities) {
+    activitiesList.innerHTML = "";
+
+    Object.entries(activities).forEach(([name, info]) => {
+      const card = document.createElement("div");
+      card.className = "activity-card";
+
+      const spotsLeft = info.max_participants - info.participants.length;
+
+      card.innerHTML = `
+        <h4>${name}</h4>
+        <p>${info.description}</p>
+        <p><strong>Schedule:</strong> ${info.schedule}</p>
+        <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+      `;
+
+      // Participants section
+      const participantsDiv = document.createElement("div");
+      participantsDiv.className = "participants-list";
+      const title = document.createElement("div");
+      title.className = "participants-list-title";
+      title.textContent = "Participants:";
+      participantsDiv.appendChild(title);
+
+      const ul = document.createElement("ul");
+      if (info.participants && info.participants.length > 0) {
+        info.participants.forEach(email => {
+          const li = document.createElement("li");
+          li.textContent = email;
+          ul.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "No participants yet";
+        ul.appendChild(li);
+      }
+      participantsDiv.appendChild(ul);
+
+      card.appendChild(participantsDiv);
+
+      activitiesList.appendChild(card);
+    });
   }
 
   // Handle form submission
